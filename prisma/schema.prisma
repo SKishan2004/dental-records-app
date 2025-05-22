@@ -1,0 +1,272 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Patient {
+  id                   Int                     @id @default(autoincrement())
+  name                 String
+  age                  Int
+  gender               String
+  dob                  DateTime
+  bloodGroup           String
+  address              String
+  contact              String
+  emergencyPerson      String
+  emergencyContact     String
+  recordDate           DateTime
+  doctorName           String?                 // ← now optional
+  registerNumber       String?                 // ← now optional
+  createdAt            DateTime                @default(now())
+
+  medicalHistories     MedicalHistory[]
+  endodonticRecords    EndodonticRecord[]
+  oralExaminations     OralExamination[]
+  prostheticRecords    ProstheticRecord[]
+  orthodonticRecords   OrthodonticRecord[]
+  softTissueFindings   SoftTissueFinding[]
+  radiographicRecords  RadiographicRecord[]
+  biopsyCytologies     BiopsyCytologyRecord[]
+  followingVisits      FollowingVisit[]
+}
+
+
+model MedicalHistory {
+  id         Int       @id @default(autoincrement())
+  patientId  Int
+  history    String[]  @default([])    // checked conditions
+  duration   String?                   // free-text duration
+  underMed   Boolean   @default(false)
+  documents  String[]  @default([])    // file paths
+  createdAt  DateTime  @default(now())
+
+  patient    Patient   @relation(fields: [patientId], references: [id])
+}
+
+model EndodonticRecord {
+  id               Int       @id @default(autoincrement())
+  patientId        Int
+  recordDate       DateTime
+  doctorName       String
+  registerNumber   String
+  fracture         String?
+  discoloured      String?
+  decayedClasses   String[]   @default([])
+  amalgam          String[]   @default([])
+  gic              String[]   @default([])
+  composite        String[]   @default([])
+  rctCrown         String?
+  rctWithout       String?
+  others           String?
+  images           String[]   @default([])
+  radiographs      String[]   @default([])
+  createdAt        DateTime   @default(now())
+
+  patient          Patient    @relation(fields: [patientId], references: [id])
+}
+
+model OralExamination {
+  id                Int       @id @default(autoincrement())
+  patientId         Int
+  examDate          DateTime
+  doctorName        String
+  registerNumber    String
+  dentition         String[]  @default([])
+  teethPresent      Int
+  missingCongenital Int
+  missingExtracted  Int
+  teethColor        String[]  @default([])
+  abnormalities     String[]  @default([])
+  periodontal       String[]  @default([])
+  wasting           String[]  @default([])
+  oralImages        String[]  @default([])
+  radiographs       String[]  @default([])
+  createdAt         DateTime  @default(now())
+
+  patient           Patient   @relation(fields: [patientId], references: [id])
+}
+
+
+model ProstheticRecord {
+  id                  Int       @id @default(autoincrement())
+  patientId           Int
+  removableKennedy    String
+  removableMaterials  String[]  @default([])
+  removableTeeth      String
+  fixedMaterial       String
+  fixedTeeth          String
+  implantType         String
+  implantMaterial     String
+  completeJaw         String[]  @default([])
+  completeSupport     String[]  @default([])
+  completeMaterial    String[]  @default([])
+  others              String?   
+  images              String[]  @default([])
+  studyCast           String[]  @default([])
+  radiographs         String[]  @default([])
+  recordDate          DateTime
+  doctorName          String
+  registerNumber      String
+  createdAt           DateTime  @default(now())
+
+  patient             Patient   @relation(fields: [patientId], references: [id])
+}
+
+model OrthodonticRecord {
+  id                       Int       @id @default(autoincrement())
+  patientId                Int
+  recordDate               DateTime
+  doctorName               String
+  registerNumber           String
+
+  typeOfOcclusion          String[]   @default([])    // ["Normal","Distocclusion",...]
+  archShape                String[]   @default([])    // ["Ovoid","Square",...]
+  midlineDeviation         Boolean    @default(false)
+  openBite                 Boolean    @default(false)
+  deepBite                 Boolean    @default(false)
+
+  crossbite                Boolean    @default(false)
+  crossbiteDesc            String?               // free-text if crossbite = true
+
+  removableAppliance       Boolean    @default(false)
+  removableApplianceDesc   String?               // free-text if removableAppliance
+
+  fixedAppliances          Boolean    @default(false)
+  bracketMaterials         String[]   @default([])    // ["Metal","Ceramic",...]
+  archWireTypes            String[]   @default([])    // ["NiTi","SS",...]
+
+  screwsDesc               String?               // free-text
+  othersDesc               String?               // free-text
+
+  images                   String[]   @default([])    // URLs from multer
+  studyCasts               String[]   @default([])    // URLs from multer
+  radiographs              String[]   @default([])    // URLs from multer
+
+  createdAt                DateTime   @default(now())
+
+  patient                  Patient    @relation(fields: [patientId], references: [id])
+}
+
+
+model SoftTissueFinding {
+  id                     Int       @id @default(autoincrement())
+  patientId              Int
+  recordDate             DateTime
+  doctorName             String
+  registerNumber         String
+
+  // Labial mucosa
+  labialColor            String[]   @default([])   // ["Pink","Red",…]
+  labialTexture          String[]   @default([])   // ["Smooth","Rough",…]
+  labialLesions          Boolean    @default(false)
+  labialLesionDesc       String?
+
+  // Buccal mucosa
+  buccalColor            String[]   @default([])
+  buccalTexture          String[]   @default([])
+  buccalLesions          Boolean    @default(false)
+  buccalLesionDesc       String?
+
+  // Gingiva
+  gingivaColor           String[]   @default([])   // ["Pink","Red","Blue-black"]
+  gingivaTexture         String[]   @default([])   // ["Smooth","Stippled","Ulcerated"]
+  gingivaOthers          String[]   @default([])   // ["Bleeding","Recession","Overgrowth"]
+  gingivaLesions         Boolean    @default(false)
+  gingivaLesionDesc      String?
+
+  // Tongue
+  tongueSize             String[]   @default([])   // ["Normal","Macroglossia","Microglossia"]
+  tongueColor            String[]   @default([])
+  tongueTexture          String[]   @default([])   // ["Smooth","Ulcerated","Papillary","Atrophy","Fissured"]
+  tongueMobility         String[]   @default([])   // ["Normal","Restricted"]
+  tongueLesions          Boolean    @default(false)
+  tongueLesionDesc       String?
+
+  // Floor of mouth
+  floorLesions           Boolean    @default(false)
+  floorLesionDesc        String?
+
+  // Hard & Soft palate
+  palateColor            String[]   @default([])
+  palateTexture          String[]   @default([])
+  palateLesions          Boolean    @default(false)
+  palateLesionDesc       String?
+
+  // Other findings
+  otherFindings          String?
+
+  // Uploads
+  images                 String[]   @default([])
+
+  createdAt              DateTime   @default(now())
+
+  patient                Patient    @relation(fields: [patientId], references: [id])
+}
+
+
+model RadiographicRecord {
+  id                   Int       @id @default(autoincrement())
+  patientId            Int
+  recordDate           DateTime
+  doctorName           String
+  registerNumber       String
+
+  radiographTypes      String[]   @default([])  // ["Occlusal","Bite wing",…]
+  occlusalImages       String[]   @default([])  // file URLs
+  biteWingImages       String[]   @default([])
+  opgImages            String[]   @default([])
+  lateralCephImages    String[]   @default([])
+  cbctImages           String[]   @default([])
+
+  biopsyRecord         String?                // free-text line
+  cytologyRecord       String?                // free-text line
+
+  createdAt            DateTime  @default(now())
+
+  patient              Patient   @relation(fields: [patientId], references: [id])
+}
+
+
+model BiopsyCytologyRecord {
+  id              Int      @id @default(autoincrement())
+  patientId       Int
+  recordDate      DateTime
+  doctorName      String
+  registerNumber  String
+  biopsyRecord    String
+  cytologyRecord  String
+  createdAt       DateTime @default(now())
+
+  patient         Patient  @relation(fields: [patientId], references: [id])
+}
+
+
+model FollowingVisit {
+  id              Int       @id @default(autoincrement())
+  patientId       Int
+  visitDate       DateTime
+  doctorName      String
+  registerNumber  String
+  summary         String
+  images          String[]  @default([])    // uploaded photos
+  radiographs     String[]  @default([])    // uploaded radiographs
+  createdAt       DateTime  @default(now())
+
+  patient         Patient   @relation(fields: [patientId], references: [id])
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+
+
+
+
